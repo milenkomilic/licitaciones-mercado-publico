@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Licitaciones Archivadas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Licitaciones Archivadas</h1>
+
+    {% if mostrar_calendario %}
+        <!-- Botones Ver Priorizadas y Ver Todas -->
+        <div class="mb-3 d-flex gap-2">
+            {% if opciones.mostrar_priorizadas %}
+                <a href="{% url 'listar_licitaciones_archivadas' %}?tipo=priorizadas" class="btn {% if tipo == 'priorizadas' %}btn-primary{% else %}btn-outline-primary{% endif %}">Ver Priorizadas</a>
+            {% endif %}
+            {% if opciones.mostrar_todas %}
+                <a href="{% url 'listar_licitaciones_archivadas' %}?tipo=todas" class="btn {% if tipo == 'todas' %}btn-primary{% else %}btn-outline-primary{% endif %}">Ver Todas</a>
+            {% endif %}
+        </div>
+
+        <!-- Calendario interactivo -->
+        <div id="calendar" class="mb-4" style="max-width: 80%; margin: 0 auto;"></div>
+    {% else %}
+        <h2>Licitaciones del {{ fecha_archivado|date:"d/m/Y" }} ({{ tipo|capfirst }})</h2>
+
+        <!-- Formulario de Filtros -->
+        <div class="card p-3 mb-4">
+            <form method="get">
+                <div class="row">
+                    <!-- Filtro de búsqueda -->
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Buscar por Nombre o Código</label>
+                        <input type="text" class="form-control" name="search" placeholder="Ej: Licitación ABC" value="{{ search_query }}">
+                    </div>
+
+                    <!-- Filtro de estado -->
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="codigo_estado" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="5" {% if estado_filtro == "5" %}selected{% endif %}>Publicada</option>
+                            <option value="6" {% if estado_filtro == "6" %}selected{% endif %}>Cerrada</option>
+                            <option value="7" {% if estado_filtro == "7" %}selected{% endif %}>Desierta</option>
+                            <option value="8" {% if estado_filtro == "8" %}selected{% endif %}>Adjudicada</option>
+                            <option value="18" {% if estado_filtro == "18" %}selected{% endif %}>Revocada</option>
+                            <option value="19" {% if estado_filtro == "19" %}selected{% endif %}>Suspendida</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Organismo -->
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Organismo</label>
+                        <input type="text" class="form-control" name="organismo" placeholder="Ej: Ministerio" value="{{ organismo_filtro }}">
+                    </div>
+
+                    <!-- Filtro de fechas -->
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Fecha de Publicación</label>
+                        <div class="input-group">
+                            <input type="date" class="form-control" name="fecha_inicio" value="{{ fecha_inicio }}">
+                            <span class="input-group-text">a</span>
+                            <input type="date" class="form-control" name="fecha_fin" value="{{ fecha_fin }}">
+                        </div>
+                    </div>
+
+                    <!-- Ordenar por -->
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Ordenar por</label>
+                        <select name="ordenar_por" class="form-select">
+                            <option value="-fecha_publicacion" {% if ordenar_por == "-fecha_publicacion" %}selected{% endif %}>Fecha Reciente</option>
+                            <option value="fecha_publicacion" {% if ordenar_por == "fecha_publicacion" %}selected{% endif %}>Fecha Antigua</option>
+                            <option value="nombre" {% if ordenar_por == "nombre" %}selected{% endif %}>Nombre</option>
+                            <option value="codigo_externo" {% if ordenar_por == "codigo_externo" %}selected{% endif %}>Código Externo</option>
+                        </select>
+                    </div>
+
+                    <!-- Botones de búsqueda y reset -->
+                    <div class="col-12 mt-2 d-flex gap-2">
+                        <input type="hidden" name="fecha_archivado" value="{{ fecha_archivado|date:"Y-m-d" }}">
+                        <input type="hidden" name="tipo" value="{{ tipo }}">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                        <a href="{% url 'listar_licitaciones_archivadas' %}?fecha_archivado={{ fecha_archivado|date:'Y-m-d' }}&tipo={{ tipo }}" class="btn btn-primary w-100">Resetear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Gráfico de Distribución de Estados -->
+        {% if not estado_filtro %}
+            <div class="card p-3 mb-4">
+                <h3 class="text-center">Distribución de Estados</h3>
+                <canvas id="estadoChart" style="max-height: 400px; width: 100%;"></canvas>
+            </div>
+
+            {{ estado_distribucion|json_script:"estado-data" }}
+        {% endif %}
+
+        <!-- Tabla -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código Externo</th>
+                        <th>Tipo</th>
+                        <th>Nombre</th>
+                        <th>Organismo</th>
+                        <th>Fecha de Publicación</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for licitacion in licitaciones %}
+                        <tr>
+                            <td>{{ licitacion.codigo_externo }}</td>
+                            <td>{{ licitacion.codigo_tipo }}</td>
+                            <td>{{ licitacion.nombre }}</td>
+                            <td>{{ licitacion.nombre_organismo }}</td>
+                            <td>{{ licitacion.fecha_publicacion|date:"d/m/Y" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if licitacion.estado_display == 'Publicada' %}bg-success
+                                    {% elif licitacion.estado_display == 'Cerrada' %}bg-danger
+                                    {% elif licitacion.estado_display == 'Desierta' %}bg-warning
+                                    {% elif licitacion.estado_display == 'Adjudicada' %}bg-primary
+                                    {% elif licitacion.estado_display == 'Revocada' %}bg-orange
+                                    {% elif licitacion.estado_display == 'Suspendida' %}bg-secondary
+                                    {% endif %}">
+                                    {{ licitacion.estado_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'detalle_licitacion_archivada' licitacion.id %}" class="btn btn-sm btn-info">Ver Detalles</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No hay licitaciones archivadas disponibles.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div>
+                Mostrando {{ licitaciones.start_index }} - {{ licitaciones.end_index }} de {{ licitaciones.paginator.count }} licitaciones
+            </div>
+            <nav>
+                <ul class="pagination">
+                    {% if licitaciones.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&fecha_archivado={{ fecha_archivado|date:'Y-m-d' }}&tipo={{ tipo }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.codigo_estado %}&codigo_estado={{ request.GET.codigo_estado }}{% endif %}{% if request.GET.organismo %}&organismo={{ request.GET.organismo }}{% endif %}{% if request.GET.fecha_inicio %}&fecha_inicio={{ request.GET.fecha_inicio }}{% endif %}{% if request.GET.fecha_fin %}&fecha_fin={{ request.GET.fecha_fin }}{% endif %}{% if request.GET.ordenar_por %}&ordenar_por={{ request.GET.ordenar_por }}{% endif %}">« Primero</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ licitaciones.previous_page_number }}&fecha_archivado={{ fecha_archivado|date:'Y-m-d' }}&tipo={{ tipo }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.codigo_estado %}&codigo_estado={{ request.GET.codigo_estado }}{% endif %}{% if request.GET.organismo %}&organismo={{ request.GET.organismo }}{% endif %}{% if request.GET.fecha_inicio %}&fecha_inicio={{ request.GET.fecha_inicio }}{% endif %}{% if request.GET.fecha_fin %}&fecha_fin={{ request.GET.fecha_fin }}{% endif %}{% if request.GET.ordenar_por %}&ordenar_por={{ request.GET.ordenar_por }}{% endif %}">‹ Anterior</a>
+                        </li>
+                    {% endif %}
+                    {% for page_num in licitaciones.paginator.page_range %}
+                        {% if licitaciones.number == page_num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% elif page_num >= licitaciones.number|add:'-2' and page_num <= licitaciones.number|add:'2' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_num }}&fecha_archivado={{ fecha_archivado|date:'Y-m-d' }}&tipo={{ tipo }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.codigo_estado %}&codigo_estado={{ request.GET.codigo_estado }}{% endif %}{% if request.GET.organismo %}&organismo={{ request.GET.organismo }}{% endif %}{% if request.GET.fecha_inicio %}&fecha_inicio={{ request.GET.fecha_inicio }}{% endif %}{% if request.GET.fecha_fin %}&fecha_fin={{ request.GET.fecha_fin }}{% endif %}{% if request.GET.ordenar_por %}&ordenar_por={{ request.GET.ordenar_por }}{% endif %}">{{ page_num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if licitaciones.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ licitaciones.next_page_number }}&fecha_archivado={{ fecha_archivado|date:'Y-m-d' }}&tipo={{ tipo }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.codigo_estado %}&codigo_estado={{ request.GET.codigo_estado }}{% endif %}{% if request.GET.organismo %}&organismo={{ request.GET.organismo }}{% endif %}{% if request.GET.fecha_inicio %}&fecha_inicio={{ request.GET.fecha_inicio }}{% endif %}{% if request.GET.fecha_fin %}&fecha_fin={{ request.GET.fecha_fin }}{% endif %}{% if request.GET.ordenar_por %}&ordenar_por={{ request.GET.ordenar_por }}{% endif %}">Siguiente ›</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ licitaciones.paginator.num_pages }}&fecha_archivado={{ fecha_archivado|date:'Y-m-d' }}&tipo={{ tipo }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.codigo_estado %}&codigo_estado={{ request.GET.codigo_estado }}{% endif %}{% if request.GET.organismo %}&organismo={{ request.GET.organismo }}{% endif %}{% if request.GET.fecha_inicio %}&fecha_inicio={{ request.GET.fecha_inicio }}{% endif %}{% if request.GET.fecha_fin %}&fecha_fin={{ request.GET.fecha_fin }}{% endif %}{% if request.GET.ordenar_por %}&ordenar_por={{ request.GET.ordenar_por }}{% endif %}">Último »</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Scripts para FullCalendar y Chart.js -->
+{% block extra_js %}
+    {% if mostrar_calendario %}
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/es.global.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var calendarEl = document.getElementById('calendar');
+                var tipo = '{{ tipo }}';
+                var fechasConDatos = [
+                    {% for fecha in fechas_con_datos %}
+                        {
+                            title: 'Licitaciones',
+                            start: '{{ fecha|date:"Y-m-d" }}',
+                            url: "{% url 'listar_licitaciones_archivadas' %}?fecha_archivado={{ fecha|date:'Y-m-d' }}&tipo=" + tipo
+                        },
+                    {% endfor %}
+                ];
+
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    locale: 'es',
+                    events: fechasConDatos,
+                    eventColor: '#3788d8',
+                    eventDisplay: 'block',
+                    eventClick: function(info) {
+                        window.location.href = info.event.url;
+                    },
+                    dateClick: function(info) {
+                        if (!fechasConDatos.some(event => event.start === info.dateStr)) {
+                            alert('No hay licitaciones archivadas para esta fecha.');
+                        }
+                    },
+                    dayCellClassNames: function(arg) {
+                        if (!fechasConDatos.some(event => event.start === arg.date.toISOString().split('T')[0])) {
+                            return ['dia-sin-datos'];
+                        }
+                        return [];
+                    },
+                    height: '70vh',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: ''
+                    },
+                    buttonText: {
+                        today: 'Hoy'
+                    }
+                });
+                calendar.render();
+            });
+        </script>
+    {% endif %}
+
+    {% if not estado_filtro %}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            // Declarar la variable en el ámbito global, pero sin redeclararla
+            if (typeof window.estadoChartInstance === 'undefined') {
+                window.estadoChartInstance = null;
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const ctx = document.getElementById('estadoChart').getContext('2d');
+                const estadoDataElement = document.getElementById('estado-data');
+
+                if (!estadoDataElement) {
+                    console.error("No se encontró el elemento con ID 'estado-data'.");
+                    return;
+                }
+
+                let estados;
+                try {
+                    estados = JSON.parse(estadoDataElement.textContent);
+                } catch (e) {
+                    console.error("Error al parsear los datos del gráfico:", e);
+                    return;
+                }
+
+                if (!estados || estados.length === 0) {
+                    console.warn("No hay datos válidos para renderizar el gráfico.");
+                    return;
+                }
+
+                // Destruir el gráfico anterior si existe
+                if (window.estadoChartInstance) {
+                    window.estadoChartInstance.destroy();
+                }
+
+                const stateColors = {
+                    'Publicada': '#28a745',
+                    'Cerrada': '#dc3545',
+                    'Desierta': '#ffc107',
+                    'Adjudicada': '#007bff',
+                    'Revocada': '#fd7e14',
+                    'Suspendida': '#6c757d'
+                };
+
+                const labels = estados.map(item => item.estado);
+                const data = estados.map(item => item.total);
+                const backgroundColors = labels.map(label => stateColors[label] || '#6c757d');
+
+                // Crear el nuevo gráfico y almacenar la instancia
+                window.estadoChartInstance = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Distribución de Estados',
+                            data: data,
+                            backgroundColor: backgroundColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: {
+                                display: true,
+                                text: 'Distribución de Estados de Licitaciones'
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
+    {% endif %}
+{% endblock %}
+
+<style>
+    .dia-sin-datos {
+        opacity: 0.4;
+        background-color: #f0f0f0;
+    }
+    .fc-daygrid-day:hover {
+        cursor: pointer;
+    }
+    #calendar {
+        max-width: 80%;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}

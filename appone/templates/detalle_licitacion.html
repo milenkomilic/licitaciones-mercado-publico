@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle de Licitación{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Detalle de Licitación</h1>
+
+    <!-- Información principal de la licitación -->
+    <h2>Información Principal</h2>
+    <table class="table table-bordered">
+        <tr><th>Código Externo</th><td>{{ licitacion.codigo_externo }}</td></tr>
+        <tr><th>Nombre</th><td>{{ licitacion.nombre }}</td></tr>
+        <tr><th>Descripción</th><td>{{ licitacion.descripcion }}</td></tr>
+        <tr><th>Código Estado</th><td>{{ licitacion.codigo_estado }}</td></tr>
+        <tr><th>Fecha de Cierre</th><td>{{ licitacion.fecha_cierre|date:"d/m/Y H:i" }}</td></tr>
+        <tr><th>Estado</th><td>{{ licitacion.estado }}</td></tr>
+    </table>
+
+    <!-- Información del comprador -->
+    <h2>Información del Comprador</h2>
+    <table class="table table-bordered">
+        <tr><th>Código Organismo</th><td>{{ licitacion.codigo_organismo }}</td></tr>
+        <tr><th>Nombre Organismo</th><td>{{ licitacion.nombre_organismo }}</td></tr>
+        <tr><th>RUT Unidad</th><td>{{ licitacion.rut_unidad }}</td></tr>
+        <tr><th>Código Unidad</th><td>{{ licitacion.codigo_unidad }}</td></tr>
+        <tr><th>Nombre Unidad</th><td>{{ licitacion.nombre_unidad }}</td></tr>
+        <tr><th>Dirección Unidad</th><td>{{ licitacion.direccion_unidad }}</td></tr>
+        <tr><th>Comuna Unidad</th><td>{{ licitacion.comuna_unidad }}</td></tr>
+        <tr><th>Región Unidad</th><td>{{ licitacion.region_unidad }}</td></tr>
+        <tr><th>RUT Usuario</th><td>{{ licitacion.rut_usuario }}</td></tr>
+        <tr><th>Código Usuario</th><td>{{ licitacion.codigo_usuario }}</td></tr>
+        <tr><th>Nombre Usuario</th><td>{{ licitacion.nombre_usuario }}</td></tr>
+        <tr><th>Cargo Usuario</th><td>{{ licitacion.cargo_usuario }}</td></tr>
+    </table>
+
+    <!-- Información de fechas -->
+    <h2>Información de Fechas</h2>
+    <table class="table table-bordered">
+        <tr><th>Fecha de Creación</th><td>{{ licitacion.fecha_creacion|date:"d/m/Y H:i" }}</td></tr>
+        <tr><th>Fecha de Inicio</th><td>{{ licitacion.fecha_inicio|date:"d/m/Y H:i" }}</td></tr>
+        <tr><th>Fecha Final</th><td>{{ licitacion.fecha_final|date:"d/m/Y H:i" }}</td></tr>
+        <tr><th>Fecha de Publicación</th><td>{{ licitacion.fecha_publicacion|date:"d/m/Y H:i" }}</td></tr>
+        <tr><th>Fecha de Adjudicación</th><td>{{ licitacion.fecha_adjudicacion|date:"d/m/Y H:i" }}</td></tr>
+        <tr><th>Fecha Estimada de Adjudicación</th><td>{{ licitacion.fecha_estimada_adjudicacion|date:"d/m/Y H:i" }}</td></tr>
+        <tr><th>Fecha de Visita a Terreno</th><td>{{ licitacion.fecha_visita_terreno|date:"d/m/Y H:i" }}</td></tr>
+        <tr><th>Fecha de Entrega de Antecedentes</th><td>{{ licitacion.fecha_entrega_antecedentes|date:"d/m/Y H:i" }}</td></tr>
+    </table>
+
+    <!-- Información adicional -->
+    <h2>Información Adicional</h2>
+    <table class="table table-bordered">
+        <tr><th>Días para Cierre</th><td>{{ licitacion.dias_cierre_licitacion }}</td></tr>
+        <tr><th>Moneda</th><td>{{ licitacion.moneda }}</td></tr>
+        <tr><th>Monto Estimado</th><td>{{ licitacion.monto_estimado }}</td></tr>
+        <tr><th>Tipo de Pago</th><td>{{ licitacion.tipo_pago }}</td></tr>
+        <tr><th>Modalidad</th><td>{{ licitacion.modalidad }}</td></tr>
+        <tr><th>Subcontratación</th><td>{{ licitacion.subcontratacion }}</td></tr>
+        <tr><th>Extensión de Plazo</th><td>{{ licitacion.extension_plazo|yesno:"Sí,No" }}</td></tr>
+        <tr><th>Es Renovable</th><td>{{ licitacion.es_renovable|yesno:"Sí,No" }}</td></tr>
+    </table>
+
+    <!-- Información de adjudicación -->
+    <h2>Información de Adjudicación</h2>
+    <table class="table table-bordered">
+        <tr><th>Tipo de Adjudicación</th><td>{{ licitacion.adjudicacion_tipo }}</td></tr>
+        <tr><th>Fecha de Adjudicación</th><td>{{ licitacion.adjudicacion_fecha|date:"d/m/Y H:i" }}</td></tr>
+        <tr><th>Número de Oferentes</th><td>{{ licitacion.adjudicacion_numero_oferentes }}</td></tr>
+        <tr><th>URL del Acta</th><td>{{ licitacion.adjudicacion_url_acta }}</td></tr>
+    </table>
+
+    <!-- Ítems Asociados -->
+    <h2>Ítems Asociados</h2>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Correlativo</th>
+                    <th>Código Externo</th>
+                    <th>Código Producto</th>
+                    <th>Nombre Producto</th>
+                    <th>Cantidad</th>
+                    <th>Unidad de Medida</th>
+                    <th>Descripción</th>
+                    <th>Adjudicación Monto Unitario</th>
+                    <th>Adjudicación Rut Proveedor</th>
+                    <th>Adjudicación Nombre Proveedor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in licitacion.items.all %}
+                    <tr>
+                        <td>{{ item.correlativo }}</td>
+                        <td>{{ item.codigo_externo }}</td>
+                        <td>{{ item.codigo_producto }}</td>
+                        <td>{{ item.nombre_producto }}</td>
+                        <td>{{ item.cantidad }}</td>
+                        <td>{{ item.unidad_medida }}</td>
+                        <td>{{ item.descripcion }}</td>
+                        <td>{{ item.adjudicacion_monto_unitario }}</td>
+                        <td>{{ item.adjudicacion_rut_proveedor }}</td>
+                        <td>{{ item.adjudicacion_nombre_proveedor }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center">No hay ítems asociados a esta licitación.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

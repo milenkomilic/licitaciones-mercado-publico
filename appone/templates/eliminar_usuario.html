@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Eliminar Usuario</h2>
+
+    <!-- Bloque para mostrar mensajes de alerta -->
+    {% if alert %}
+        <div class="alert alert-{{ alert.type }}" role="alert">
+            {{ alert.message }}
+        </div>
+    {% endif %}
+
+    <p>¿Estás seguro de que deseas eliminar al usuario "<strong>{{ usuario.nombre }}</strong>"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+            <a href="{% url 'gestion_usuarios' %}" class="btn btn-primary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

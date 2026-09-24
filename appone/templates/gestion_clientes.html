@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container-fluid">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-4 text-center text-md-start">Gestión de Clientes</h1>
+            <button type="button" class="btn btn-outline-info btn-sm ms-md-auto" data-bs-toggle="modal" data-bs-target="#infoModal">
+                <i class="bi bi-info-circle"></i> ¿Por qué son importantes los clientes?
+            </button>
+        </div>
+
+        <!-- Sección de Subida de Excel -->
+        <div class="card p-3 mb-4">
+            <h4 class="mb-3">Subir Clientes desde Excel</h4>
+            <form action="{% url 'subir_clientes_excel' %}" method="post" enctype="multipart/form-data" class="d-flex flex-column flex-md-row gap-2">
+                {% csrf_token %}
+                {{ excel_form.as_p }}
+                <button type="submit" class="btn btn-primary">Subir Archivo</button>
+            </form>
+            <div class="mt-3 d-flex gap-2">
+                <button type="button" class="btn btn-primary" id="btn-descargar">Descargar Formato Excel</button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#helpModal">Ayuda</button>
+            </div>
+        </div>
+
+        <!-- Botón de acción y botón del modal (fuera del formulario) -->
+        <div class="row mb-3">
+            <div class="col-12 text-center text-md-start d-flex flex-column flex-md-row gap-2">
+                <!-- Ejemplo: Si tienes un botón de acción como subir clientes, iría aquí -->
+                <!-- <form method="post" enctype="multipart/form-data" class="d-inline"> ... </form> -->
+
+            </div>
+        </div>
+
+        <!-- Formulario de Filtros -->
+        <div class="card p-3 mb-4">
+            <form method="get">
+                <div class="row">
+                    <!-- Filtro por Texto (Nombre, Contacto, Email) -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Buscar (Nombre, Rut, Contacto, Email)</label>
+                        <input type="text" class="form-control" name="search_text" placeholder="Buscar nombre, rut, contacto o email" value="{{ search_text }}">
+                    </div>
+
+                    <!-- Filtro por Tipo Cliente -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Tipo de Cliente</label>
+                        <select name="tipo_cliente" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="empresa" {% if tipo_cliente == "empresa" %}selected{% endif %}>Empresa</option>
+                            <option value="institucion" {% if tipo_cliente == "institucion" %}selected{% endif %}>Institución</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Contacto Principal -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Contacto Principal</label>
+                        <input type="text" class="form-control" name="contacto" placeholder="Buscar por contacto" value="{{ contacto }}">
+                    </div>
+
+                    <!-- Filtro por Email -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="text" class="form-control" name="email" placeholder="Buscar por email" value="{{ email }}">
+                    </div>
+
+                    <!-- Filtro por Sector/Industria -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Sector/Industria</label>
+                        <select name="sector" class="form-select">
+                            <option value="">Todos</option>
+                            {% for s in sectores %}
+                                <option value="{{ s.codigo }}" {% if sector == s.codigo %}selected{% endif %}>
+                                    {{ s.descripcion }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Ordenar por -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Ordenar por</label>
+                        <select name="ordenar_por" class="form-select">
+                            <option value="nombre_cliente" {% if ordenar_por == "nombre_cliente" %}selected{% endif %}>Nombre</option>
+                            <option value="contacto_principal" {% if ordenar_por == "contacto_principal" %}selected{% endif %}>Contacto</option>
+                            <option value="email" {% if ordenar_por == "email" %}selected{% endif %}>Email</option>
+                        </select>
+                    </div>
+
+                    <!-- Botones de búsqueda y reset -->
+                    <div class="col-12 mt-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                        <a href="{% url 'gestion_clientes' %}" class="btn btn-primary w-100">Resetear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {% if clientes %}
+        <!-- Tabla de Clientes (visible solo en pantallas grandes) -->
+        <div class="d-none d-lg-block mt-4">
+            <div class="table-responsive">
+                <table class="table table-bordered" style="table-layout: fixed; width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Nombre</th>
+                            <th style="width: 10%;">RUT</th>
+                            <th style="width: 10%;">Tipo</th>
+                            <th style="width: 15%;">Contacto Principal</th>
+                            <th style="width: 15%;">Email</th>
+                            <th style="width: 15%;">Sector/Industria</th>
+                            <th style="width: 15%;">Descripción del Rubro</th>
+                            <th style="width: 10%;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cliente in clientes %}
+                        <tr>
+                            <td style="word-wrap: break-word;">{{ cliente.nombre_cliente }}</td>
+                            <td style="word-wrap: break-word;">{{ cliente.rut_cliente }}</td>
+                            <td style="word-wrap: break-word;">{{ cliente.get_tipo_cliente_display }}</td>
+                            <td style="word-wrap: break-word;">{{ cliente.contacto_principal }}</td>
+                            <td style="word-wrap: break-word;">{{ cliente.email }}</td>
+                            <td style="word-wrap: break-word;">{{ cliente.sector.descripcion }}</td>
+                            <td style="word-wrap: break-word;">{{ cliente.descripcion_rubro }}</td>
+                            <td>
+                                <div class="d-flex flex-column gap-1">
+                                    <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-sm btn-warning">Editar</a>
+                                    <a href="{% url 'eliminar_cliente' cliente.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                    <a href="{% url 'asignar_cliente_usuario' cliente.id %}" class="btn btn-sm btn-info">Asignar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cards de Clientes (visible solo en pantallas medianas y pequeñas) -->
+        <div class="d-lg-none mt-4">
+            <div class="row">
+                {% for cliente in clientes %}
+                <div class="col-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ cliente.nombre_cliente }}</h5>
+                            <p class="card-text">
+                                <strong>RUT:</strong> {{ cliente.rut_cliente }}<br>
+                                <strong>Tipo:</strong> {{ cliente.get_tipo_cliente_display }}<br>
+                                <strong>Contacto Principal:</strong> {{ cliente.contacto_principal }}<br>
+                                <strong>Email:</strong> {{ cliente.email }}<br>
+                                <strong>Sector/Industria:</strong> {{ cliente.sector.descripcion }}<br>
+                                <strong>Descripción del Rubro:</strong> {{ cliente.descripcion_rubro }}
+                            </p>
+                            <div class="d-flex flex-column gap-2">
+                                <a href="{% url 'editar_cliente' cliente.id %}" class="btn btn-sm btn-warning">Editar</a>
+                                <a href="{% url 'eliminar_cliente' cliente.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                <a href="{% url 'asignar_cliente_usuario' cliente.id %}" class="btn btn-sm btn-info">Asignar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <div class="mb-2 mb-md-0 text-center text-md-start">
+                        Mostrando {{ clientes.start_index }} - {{ clientes.end_index }} de {{ clientes.paginator.count }} clientes
+                    </div>
+                    <nav class="w-100 w-md-auto">
+                        <ul class="pagination justify-content-center justify-content-md-end">
+                            {% if clientes.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}§or={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">
+                                        « Primero
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ clientes.previous_page_number }}{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}§or={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">
+                                        ‹ Anterior
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for page_num in clientes.paginator.page_range %}
+                                {% if clientes.number == page_num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% elif page_num >= clientes.number|add:'-2' and page_num <= clientes.number|add:'2' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_num }}{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}§or={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">{{ page_num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if clientes.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ clientes.next_page_number }}{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}§or={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">
+                                        Siguiente ›
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ clientes.paginator.num_pages }}{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}§or={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">
+                                        Último »
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-center">No se encontraron clientes.</p>
+        {% endif %}
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header text-white">
+                    <h5 class="modal-title" id="helpModalLabel">Instrucciones para subir datos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>1. Descarga la plantilla</h6>
+                    <p>Haz clic en <strong>"Descargar Formato Excel"</strong> para obtener el archivo de ejemplo con el formato correcto.</p>
+                    <h6>2. Preparar los datos en Excel</h6>
+                    <ol>
+                        <li><strong>Copiar el texto:</strong> Selecciona el bloque de texto con los datos. Asegúrate de que cada fila esté separada por saltos de línea y que cada campo esté separado por tabulaciones.<br>
+                            <strong>Ejemplo:</strong>
+                            <div style="margin-top: 0.5rem; margin-bottom: 1.5rem;">
+                                <pre id="exampleText" style="background-color: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; white-space: pre-wrap; margin-bottom: 0.5rem;">
+Ejemplo S.A.	12.345.678-9	empresa	Alberto Delgado	contacto@ejemplo.com	tecnologia	Empresa dedicada a la innovación tecnológica.	activo
+                                </pre>
+                                <button type="button" class="btn btn-sm btn-outline-info" id="copyExample">Copiar ejemplo</button>
+                            </div>
+                        </li>
+                        <li><strong>Pegar en Excel:</strong> Abre la plantilla descargada y pega el contenido en la celda A1. Haz clic derecho en la celda A1 y selecciona <em>"Pegado especial"</em>.</li>
+                        <li><strong>Usar Pegado Especial:</strong> En la ventana que se abre, selecciona la opción <strong>"Texto"</strong> (o <strong>"Texto Unicode"</strong> si lo prefieres) y haz clic en <em>"Aceptar"</em> para que los datos se distribuyan correctamente en columnas.</li>
+                    </ol>
+                    <h6>3. Subir el archivo</h6>
+                    <p>Guarda el archivo en formato Excel (.xlsx) y súbelo utilizando el botón <strong>"Subir Archivo"</strong>.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal de Información -->
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="infoModalLabel">Importancia de los Sectores</h5>
+                    <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>¿Por qué son importantes los sectores?</strong></p>
+                    <p>
+                        Los sectores son fundamentales para priorizar licitaciones relevantes para cada usuario. Cada cliente asignado a un usuario está asociado a un sector (como construcción, salud o tecnología). Estos sectores se utilizan para generar un perfil compacto de los clientes, que incluye las palabras clave y el rol del usuario.
+                    </p>
+                    <p>
+                        La IA, a través de Amazon Bedrock, evalúa este perfil junto con los clusters de licitaciones (agrupados por similitud de palabras clave) y determina qué licitaciones son más relevantes según los sectores de los clientes asignados. Así, los usuarios reciben un listado reducido y específico de licitaciones diarias, optimizando su análisis y enfocándose en oportunidades clave.
+                    </p>
+                    <p>
+                        Ejemplo: Si un usuario tiene clientes en el sector "Salud", la IA priorizará licitaciones relacionadas con servicios médicos para ese usuario.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSS personalizado -->
+    <style>
+        @media (min-width: 1400px) {
+            .d-custom-lg-block {
+                display: block !important;
+            }
+            .d-custom-lg-none {
+                display: none !important;
+            }
+        }
+
+        .table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .table th,
+        .table td {
+            word-wrap: break-word;
+            white-space: normal;
+            padding: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table td {
+            max-width: 0; /* Permite que el texto se divida */
+        }
+    </style>
+
+    <!-- Script -->
+    <script>
+        // Botón de descarga
+        const descargarUrl = "{% url 'descargar_excel_muestra' %}";
+        document.getElementById("btn-descargar").addEventListener("click", function() {
+            window.location.href = descargarUrl;
+        });
+
+        // Botón de copiar ejemplo
+        document.getElementById("copyExample").addEventListener("click", function() {
+            const text = document.getElementById("exampleText").innerText;
+            navigator.clipboard.writeText(text).then(function() {
+                document.getElementById("copyExample").innerText = "Copiado!";
+                setTimeout(function(){
+                    document.getElementById("copyExample").innerText = "Copiar ejemplo";
+                }, 2000);
+            }).catch(function(error) {
+                console.error("Error al copiar: ", error);
+            });
+        });
+    </script>
+{% endblock %}

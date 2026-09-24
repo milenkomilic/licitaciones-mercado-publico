@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Crear Usuario</h2>
+
+    <!-- Sección única para mostrar todos los errores y alertas del formulario -->
+    <div class="alert alert-{% if form.errors or alert.type == 'danger' %}danger{% else %}{{ alert.type }}{% endif %}" role="alert">
+        <ul class="mb-0">
+            {% if alert %}
+                <li>{{ alert.message }}</li>
+            {% endif %}
+            {% if form.errors %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+        </ul>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.rut.id_for_label }}" class="form-label">RUT</label>
+                    {{ form.rut }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.nombre.id_for_label }}" class="form-label">Nombre</label>
+                    {{ form.nombre }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                    {{ form.email }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">Número de Teléfono</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.help_text %}
+                        <small class="form-text text-muted">{{ form.phone_number.help_text }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.rol.id_for_label }}" class="form-label">Rol</label>
+                    {{ form.rol }}
+                </div>
+            </div>
+
+            <!-- Asignar via check admins y usuarios -->
+            {% if request.user.is_superuser %}
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="id_is_staff" class="form-label">Administrador</label>
+                    {{ form.is_staff }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_is_active" class="form-label">Usuario Activo</label>
+                    {{ form.is_active }}
+                </div>
+            </div>
+            {% elif request.user.is_staff %}
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="id_is_active" class="form-label">Usuario Activo</label>
+                        {{ form.is_active }}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña</label>
+                    {{ form.password }}
+                    {% if form.password.help_text %}
+                        <small class="form-text text-muted">{{ form.password.help_text }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="{{ form.confirm_password.id_for_label }}" class="form-label">Confirmar Contraseña</label>
+                    {{ form.confirm_password }}
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a href="{% url 'gestion_usuarios' %}" class="btn btn-primary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

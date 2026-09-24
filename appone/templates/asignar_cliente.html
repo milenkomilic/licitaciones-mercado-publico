@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Asignar Cliente a Usuarios</h2>
+    <p><strong>Cliente:</strong> {{ cliente.nombre_cliente }} ({{ cliente.rut_cliente }})</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Selecciona los usuarios a asignar:</label>
+            {% for usuario in usuarios %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="usuario_ids" id="usuario_{{ usuario.id_usuario }}" value="{{ usuario.id_usuario }}"
+                        {% if usuario in cliente.asignado_a.all %}checked{% endif %}>
+                    <label class="form-check-label" for="usuario_{{ usuario.id_usuario }}">
+                        {{ usuario.nombre }} ({{ usuario.rut }})
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Asignar</button>
+        <a href="{% url 'gestion_clientes' %}" class="btn btn-primary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h2 class="mb-0">Crear Rol</h2>
+    </div>
+    <div class="card-body">
+      {% if alert %}
+        <div class="alert alert-{{ alert.type }}" role="alert">
+          {{ alert.message }}
+        </div>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <!-- Campo: Nombre del Rol -->
+        <div class="mb-3">
+          <label for="{{ form.nombre_rol.id_for_label }}" class="form-label">Nombre del Rol</label>
+          {{ form.nombre_rol }}
+          {% if form.nombre_rol.help_text %}
+            <div class="form-text">{{ form.nombre_rol.help_text }}</div>
+          {% endif %}
+          {% if form.nombre_rol.errors %}
+            <div class="invalid-feedback d-block">
+              {% for error in form.nombre_rol.errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Campo: Descripción -->
+        <div class="mb-3">
+          <label for="{{ form.descripcion.id_for_label }}" class="form-label">Descripción</label>
+          {{ form.descripcion }}
+          {% if form.descripcion.help_text %}
+            <div class="form-text">{{ form.descripcion.help_text }}</div>
+          {% endif %}
+          {% if form.descripcion.errors %}
+            <div class="invalid-feedback d-block">
+              {% for error in form.descripcion.errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-between">
+          <button type="submit" class="btn btn-primary">Guardar</button>
+          <a href="{% url 'gestion_roles' %}" class="btn btn-primary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

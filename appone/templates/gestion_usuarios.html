@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4 text-center text-md-start">Gestión de Usuarios</h2>
+            </div>
+        </div>
+
+        <!-- Botón para agregar un nuevo usuario (fuera del formulario) -->
+        <div class="row mb-3">
+            <div class="col-12 text-center text-md-start d-flex flex-column flex-md-row gap-2">
+                <a href="{% url 'crear_usuario' %}" class="btn btn-primary">Agregar Usuarios</a>
+            </div>
+        </div>
+
+        <!-- Formulario de Filtros -->
+        <div class="card p-3 mb-4">
+            <form method="get">
+                <div class="row">
+                    <!-- Filtro por Texto (Rut, Nombre, Email) -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Buscar (Rut, Nombre, Email)</label>
+                        <input type="text" class="form-control" name="search_text" placeholder="Buscar en rut, nombre o email" value="{{ search_text }}">
+                    </div>
+
+                    <!-- Filtro por Rol -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Rol</label>
+                        <select name="rol" class="form-select">
+                            <option value="">Todos</option>
+                            {% for rol in roles %}
+                                <option value="{{ rol.id }}" {% if rol == rol.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ rol.nombre_rol }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Ordenar por -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Ordenar por</label>
+                        <select name="ordenar_por" class="form-select">
+                            <option value="nombre" {% if ordenar_por == "nombre" %}selected{% endif %}>Nombre</option>
+                            <option value="email" {% if ordenar_por == "email" %}selected{% endif %}>Email</option>
+                        </select>
+                    </div>
+
+                    <!-- Botones de búsqueda y reset -->
+                    <div class="col-12 mt-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                        <a href="{% url 'gestion_usuarios' %}" class="btn btn-primary w-100">Resetear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Contenido para pantallas pequeñas (< 768px): Tarjetas apiladas -->
+        <div class="row d-block d-md-none">
+            <div class="col-12">
+                {% for usuario in usuarios %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ usuario.nombre }}</h5>
+                            <p class="card-text">
+                                <strong>RUT:</strong> {{ usuario.rut }}<br>
+                                <strong>Email:</strong> {{ usuario.email }}<br>
+                                <strong>Número de Teléfono:</strong> {{ usuario.phone_number }}<br>
+                                <strong>Rol:</strong> {{ usuario.rol_display }}<br>
+                                <strong>Estado:</strong> {{ usuario.is_active|yesno:"Activo,Inactivo" }}
+                            </p>
+                            <div class="d-flex flex-column gap-2">
+                                <a href="{% url 'editar_usuario' usuario.id_usuario %}" class="btn btn-sm btn-warning">Editar</a>
+                                <a href="{% url 'eliminar_usuario' usuario.id_usuario %}" class="btn btn-sm btn-danger">Eliminar</a>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-center">No se encontraron usuarios.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Contenido para pantallas medianas (769px - 1399px): Dos cards por fila -->
+        <div class="row d-none d-md-block d-custom-lg-none">
+            <div class="col-12">
+                <div class="row row-cols-1 row-cols-md-2 g-3">
+                    {% for usuario in usuarios %}
+                        <div class="col">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ usuario.nombre }}</h5>
+                                    <p class="card-text">
+                                        <strong>RUT:</strong> {{ usuario.rut }}<br>
+                                        <strong>Email:</strong> {{ usuario.email }}<br>
+                                        <strong>Número de Teléfono:</strong> {{ usuario.phone_number }}<br>
+                                        <strong>Rol:</strong> {{ usuario.rol_display }}<br>
+                                        <strong>Estado:</strong> {{ usuario.is_active|yesno:"Activo,Inactivo" }}
+                                    </p>
+                                    <div class="d-flex flex-column gap-2">
+                                        <a href="{% url 'editar_usuario' usuario.id_usuario %}" class="btn btn-sm btn-warning">Editar</a>
+                                        <a href="{% url 'eliminar_usuario' usuario.id_usuario %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="text-center">No se encontraron usuarios.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla para pantallas grandes (≥ 1400px) -->
+        <div class="row d-none d-custom-lg-block">
+            <div class="col-12">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>RUT</th>
+                            <th>NOMBRE</th>
+                            <th>EMAIL</th>
+                            <th>NÚMERO DE TELÉFONO</th>
+                            <th>ROL</th>
+                            <th>ESTADO</th>
+                            <th>ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                            <tr>
+                                <td>{{ usuario.rut }}</td>
+                                <td>{{ usuario.nombre }}</td>
+                                <td>{{ usuario.email }}</td>
+                                <td>{{ usuario.phone_number }}</td>
+                                <td>{{ usuario.rol_display }}</td>
+                                <td>{{ usuario.is_active|yesno:"Activo,Inactivo" }}</td>
+                                <td>
+                                    <div class="d-flex flex-column flex-md-row gap-2">
+                                        <a href="{% url 'editar_usuario' usuario.id_usuario %}" class="btn btn-sm btn-warning">Editar</a>
+                                        <a href="{% url 'eliminar_usuario' usuario.id_usuario %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No se encontraron usuarios.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <div class="mb-2 mb-md-0 text-center text-md-start">
+                        Mostrando {{ usuarios.start_index }} - {{ usuarios.end_index }} de {{ usuarios.paginator.count }} usuarios
+                    </div>
+                    <nav class="w-100 w-md-auto">
+                        <ul class="pagination justify-content-center justify-content-md-end">
+                            {% if usuarios.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}">
+                                        « Primero
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ usuarios.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}">
+                                        ‹ Anterior
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for page_num in usuarios.paginator.page_range %}
+                                {% if usuarios.number == page_num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% elif page_num >= usuarios.number|add:'-2' and page_num <= usuarios.number|add:'2' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}">{{ page_num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if usuarios.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ usuarios.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}">
+                                        Siguiente ›
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ usuarios.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rol %}&rol={{ request.GET.rol }}{% endif %}">
+                                        Último »
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS personalizado para breakpoint de 1399px -->
+<style>
+    @media (min-width: 769px) and (max-width: 1399px) {
+        .custom-md-lg-row .row-cols-md-2 > * {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+    }
+
+    @media (min-width: 1400px) {
+        .d-custom-lg-block {
+            display: block !important;
+        }
+        .d-custom-lg-none {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

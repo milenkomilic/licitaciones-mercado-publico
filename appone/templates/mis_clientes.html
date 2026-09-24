@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container-fluid">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-4 text-center text-md-start">Mis Clientes</h1>
+            <button type="button" class="btn btn-outline-info btn-sm ms-md-auto" data-bs-toggle="modal" data-bs-target="#infoModal">
+                <i class="bi bi-info-circle"></i> ¿Por qué son importantes los clientes?
+            </button>
+        </div>
+        <!-- Formulario de Filtros -->
+        <div class="card p-3 mb-4">
+            <form method="get">
+                <div class="row">
+                    <!-- Filtro por Texto (Nombre, Contacto, Email) -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Buscar (Nombre, Rut, Contacto, Email)</label>
+                        <input type="text" class="form-control" name="search_text" placeholder="Buscar en nombre, contacto o email" value="{{ search_text }}">
+                    </div>
+
+                    <!-- Filtro por Tipo Cliente -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Tipo de Cliente</label>
+                        <select name="tipo_cliente" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="empresa" {% if tipo_cliente == "empresa" %}selected{% endif %}>Empresa</option>
+                            <option value="institucion" {% if tipo_cliente == "institucion" %}selected{% endif %}>Institución</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro por Sector/Industria -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Sector/Industria</label>
+                        <select name="sector" class="form-select">
+                            <option value="">Todos</option>
+                            {% for s in sectores %}
+                                <option value="{{ s.codigo }}" {% if sector == s.codigo %}selected{% endif %}>
+                                    {{ s.descripcion }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Ordenar por -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Ordenar por</label>
+                        <select name="ordenar_por" class="form-select">
+                            <option value="nombre_cliente" {% if ordenar_por == "nombre_cliente" %}selected{% endif %}>Nombre</option>
+                            <option value="contacto_principal" {% if ordenar_por == "contacto_principal" %}selected{% endif %}>Contacto</option>
+                            <option value="email" {% if ordenar_por == "email" %}selected{% endif %}>Email</option>
+                        </select>
+                    </div>
+
+                    <!-- Botones de búsqueda y reset -->
+                    <div class="col-12 mt-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                        <a href="{% url 'mis_clientes' %}" class="btn btn-primary w-100">Resetear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {% if clientes %}
+        <!-- Tabla de Clientes (visible solo en pantallas grandes) -->
+        <div class="d-none d-lg-block mt-4">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>RUT</th>
+                            <th>Tipo</th>
+                            <th>Contacto Principal</th>
+                            <th>Email</th>
+                            <th>Sector/Industria</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cliente in clientes %}
+                        <tr>
+                            <td>{{ cliente.nombre_cliente }}</td>
+                            <td>{{ cliente.rut_cliente }}</td>
+                            <td>{{ cliente.get_tipo_cliente_display }}</td>
+                            <td>{{ cliente.contacto_principal }}</td>
+                            <td>{{ cliente.email }}</td>
+                            <td>{{ cliente.sector.descripcion }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Cards de Clientes (visible solo en pantallas medianas y pequeñas) -->
+        <div class="d-lg-none mt-4">
+            <div class="row">
+                {% for cliente in clientes %}
+                <div class="col-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ cliente.nombre_cliente }}</h5>
+                            <p class="card-text">
+                                <strong>RUT:</strong> {{ cliente.rut_cliente }}<br>
+                                <strong>Tipo:</strong> {{ cliente.get_tipo_cliente_display }}<br>
+                                <strong>Contacto Principal:</strong> {{ cliente.contacto_principal }}<br>
+                                <strong>Email:</strong> {{ cliente.email }}<br>
+                                <strong>Sector/Industria:</strong> {{ cliente.sector.descripcion }}<br>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <div class="mb-2 mb-md-0 text-center text-md-start">
+                        Mostrando {{ clientes.start_index }} - {{ clientes.end_index }} de {{ clientes.paginator.count }} clientes
+                    </div>
+                    <nav class="w-100 w-md-auto">
+                        <ul class="pagination justify-content-center justify-content-md-end">
+                            {% if clientes.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}&sector={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">
+                                        « Primero
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ clientes.previous_page_number }}{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}&sector={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">
+                                        ‹ Anterior
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for page_num in clientes.paginator.page_range %}
+                                {% if clientes.number == page_num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% elif page_num >= clientes.number|add:'-2' and page_num <= clientes.number|add:'2' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_num }}{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}&sector={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">{{ page_num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if clientes.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ clientes.next_page_number }}{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}&sector={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">
+                                        Siguiente ›
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ clientes.paginator.num_pages }}{% if search_text %}&search_text={{ search_text }}{% endif %}{% if tipo_cliente %}&tipo_cliente={{ tipo_cliente }}{% endif %}{% if contacto %}&contacto={{ contacto }}{% endif %}{% if email %}&email={{ email }}{% endif %}{% if sector %}&sector={{ sector }}{% endif %}{% if ordenar_por %}&ordenar_por={{ ordenar_por }}{% endif %}">
+                                        Último »
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Información -->
+        <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="infoModalLabel">Importancia de los Sectores</h5>
+                        <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>¿Por qué son importantes los sectores?</strong></p>
+                        <p>
+                            Los sectores son fundamentales para priorizar licitaciones relevantes para cada usuario. Cada cliente asignado a un usuario está asociado a un sector (como construcción, salud o tecnología). Estos sectores se utilizan para generar un perfil compacto de los clientes, que incluye las palabras clave y el rol del usuario.
+                        </p>
+                        <p>
+                            La IA, a través de Amazon Bedrock, evalúa este perfil junto con los clusters de licitaciones (agrupados por similitud de palabras clave) y determina qué licitaciones son más relevantes según los sectores de los clientes asignados. Así, los usuarios reciben un listado reducido y específico de licitaciones diarias, optimizando su análisis y enfocándose en oportunidades clave.
+                        </p>
+                        <p>
+                            Ejemplo: Si un usuario tiene clientes en el sector "Salud", la IA priorizará licitaciones relacionadas con servicios médicos para ese usuario.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <p class="text-center">No tienes clientes asignados.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

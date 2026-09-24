@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Editar Rol</h2>
+
+    <!-- Bloque para mostrar mensajes de alerta -->
+    {% if alert %}
+        <div class="alert alert-{{ alert.type }}" role="alert">
+            {{ alert.message }}
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <!-- Recorrer cada campo del formulario para mostrar errores y ayuda -->
+        {% for field in form %}
+            <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                {% if field.errors %}
+                    <div class="text-danger">
+                        <ul>
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Actualizar</button>
+        <a href="{% url 'gestion_roles' %}" class="btn btn-primary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

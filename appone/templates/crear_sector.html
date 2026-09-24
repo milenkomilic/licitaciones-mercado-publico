@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <h1 class="mb-4 text-center text-md-start">Crear Sector</h1>
+        <div class="card p-3">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a href="{% url 'lista_sectores' %}" class="btn btn-primary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

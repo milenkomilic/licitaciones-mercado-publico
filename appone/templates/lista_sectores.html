@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4 text-center text-md-start">Listado de Sectores</h2>
+            </div>
+        </div>
+
+        <!-- Botón "Crear nuevo sector" y mensaje para no superadmins -->
+        <div class="row mb-3">
+            <div class="col-12 text-center text-md-start d-flex flex-column flex-md-row gap-2">
+                {% if request.user.is_superuser %}
+                    <a href="{% url 'crear_sector' %}" class="btn btn-primary">Crear nuevo sector</a>
+                {% else %}
+                    <p class="text-muted mb-0">Nota: Solo el Superadmin puede crear o modificar sectores. Contacta al Superadmin si necesitas agregar uno nuevo.</p>
+                {% endif %}
+                <button type="button" class="btn btn-outline-info btn-sm ms-md-auto" data-bs-toggle="modal" data-bs-target="#infoModal">
+                    <i class="bi bi-info-circle"></i> ¿Por qué son importantes los sectores?
+                </button>
+            </div>
+        </div>
+
+        <!-- Formulario de Filtros -->
+        <div class="card p-3 mb-4">
+            <form method="get">
+                <div class="row">
+                    <!-- Filtro por Texto (Código, Descripción) -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Buscar (Código o Descripción)</label>
+                        <input type="text" class="form-control" name="search_text" placeholder="Buscar en código o descripción" value="{{ search_text }}">
+                    </div>
+
+                    <!-- Botones de búsqueda y reset -->
+                    <div class="col-12 mt-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                        <a href="{% url 'lista_sectores' %}" class="btn btn-primary w-100">Resetear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {% if sectores %}
+            <!-- Contenido para pantallas pequeñas (< 768px): Tarjetas apiladas -->
+            <div class="row d-block d-md-none">
+                <div class="col-12">
+                    {% for sector in sectores %}
+                        <div class="card mb-3" style="background-color: #ffffff;">
+                            <div class="card-body">
+                                <h5 class="card-title">Sector #{{ sector.id }}</h5>
+                                <p class="card-text">
+                                    <strong>Código:</strong> {{ sector.codigo }}<br>
+                                    <strong>Descripción:</strong> {{ sector.descripcion }}
+                                </p>
+                                {% if request.user.is_superuser %}
+                                    <div class="d-flex flex-column gap-2">
+                                        <a href="{% url 'editar_sector' sector.id %}" class="btn btn-sm btn-warning">Editar</a>
+                                        <a href="{% url 'eliminar_sector' sector.id %}" class="btn btn-sm btn-danger"
+                                           onclick="return confirm('¿Estás seguro de eliminar este sector?');">
+                                            Eliminar
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Contenido para pantallas medianas (769px - 1399px): Dos cards por fila -->
+            <div class="row d-none d-md-block d-custom-lg-none custom-md-lg-row">
+                <div class="col-12">
+                    <div class="row row-cols-1 row-cols-md-2 g-3">
+                        {% for sector in sectores %}
+                            <div class="col">
+                                <div class="card mb-3" style="background-color: #ffffff;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Sector #{{ sector.id }}</h5>
+                                        <p class="card-text">
+                                            <strong>Código:</strong> {{ sector.codigo }}<br>
+                                            <strong>Descripción:</strong> {{ sector.descripcion }}
+                                        </p>
+                                        {% if request.user.is_superuser %}
+                                            <div class="d-flex flex-column gap-2">
+                                                <a href="{% url 'editar_sector' sector.id %}" class="btn btn-sm btn-warning">Editar</a>
+                                                <a href="{% url 'eliminar_sector' sector.id %}" class="btn btn-sm btn-danger"
+                                                   onclick="return confirm('¿Estás seguro de eliminar este sector?');">
+                                                    Eliminar
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla para pantallas grandes (≥ 1400px) -->
+            <div class="row d-none d-custom-lg-block">
+                <div class="col-12">
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                {% if request.user.is_superuser %}
+                                    <th>Acciones</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sector in sectores %}
+                                <tr>
+                                    <td>{{ sector.id }}</td>
+                                    <td>{{ sector.codigo }}</td>
+                                    <td>{{ sector.descripcion }}</td>
+                                    {% if request.user.is_superuser %}
+                                        <td>
+                                            <div class="d-flex flex-column flex-md-row gap-2">
+                                                <a href="{% url 'editar_sector' sector.id %}" class="btn btn-sm btn-warning">Editar</a>
+                                                <a href="{% url 'eliminar_sector' sector.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                            </div>
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <p class="text-center">No hay sectores disponibles</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de Información -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="infoModalLabel">Importancia de los Sectores</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <p><strong>¿Por qué son importantes los sectores?</strong></p>
+              <p>
+                  Los sectores son fundamentales para priorizar licitaciones relevantes para cada usuario. Cada cliente asignado a un usuario está asociado a un sector (como construcción, salud o tecnología). Estos sectores se utilizan para generar un perfil compacto de los clientes, que incluye las palabras clave y el rol del usuario.
+              </p>
+              <p>
+                  La IA, a través de Amazon Bedrock, evalúa este perfil junto con los clusters de licitaciones (agrupados por similitud de palabras clave) y determina qué licitaciones son más relevantes según los sectores de los clientes asignados. Así, los usuarios reciben un listado reducido y específico de licitaciones diarias, optimizando su análisis y enfocándose en oportunidades clave.
+              </p>
+              <p>
+                  Ejemplo: Si un usuario tiene clientes en el sector "Salud", la IA priorizará licitaciones relacionadas con servicios médicos para ese usuario.
+              </p>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- CSS personalizado para breakpoint de 1399px -->
+<style>
+    @media (min-width: 769px) and (max-width: 1399px) {
+        .custom-md-lg-row .row-cols-md-2 > * {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+    }
+
+    @media (min-width: 1400px) {
+        .d-custom-lg-block {
+            display: block !important;
+        }
+        .d-custom-lg-none {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0 text-center text-md-start">Mis Productos</h1>
+            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#infoModal">
+                <i class="bi bi-info-circle"></i> ¿Qué son los Productos?
+            </button>
+        </div>
+
+        <!-- Formulario de Productos -->
+        <div class="card p-3">
+            <form method="post" id="productosForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="{{ form.keywords_usuario.id_for_label }}" class="form-label">Productos Personalizados</label>
+                    {{ form.keywords_usuario }}
+                    {% if form.keywords_usuario.help_text %}
+                        <small class="form-text text-muted">{{ form.keywords_usuario.help_text }}</small>
+                    {% endif %}
+                    {% if form.keywords_usuario.errors %}
+                        <div class="text-danger">
+                            {% for error in form.keywords_usuario.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-primary" id="clearTags">Borrar Todo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Información -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModalLabel">Acerca de los Productos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Productos</strong></p>
+                <p>
+                    Los productos personalizados te permiten afinar las licitaciones priorizadas que ves en tu módulo de licitaciones diarias. 
+                    Al agregar productos, indicas tus intereses específicos, y el sistema los utiliza junto con los productos definidos por tu 
+                    administrador y los datos de tus clientes asignados para filtrar las licitaciones más relevantes para ti. Esto reduce el número 
+                    de licitaciones a revisar, mostrándote solo aquellas que se alinean con tus preferencias.
+                </p>
+                <p>
+                    Ejemplo: Si añades productos como "tecnología, software", el sistema priorizará licitaciones relacionadas con esos temas para ti.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para inicializar Tagify y manejar "Borrar Todo" -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar Tagify
+        const input = document.querySelector('.tagify-input');
+        const tagify = new Tagify(input, {
+            delimiters: ", ",  // Separar tags por coma y espacio
+            duplicates: false,  // No permitir duplicados
+            trim: true,  // Eliminar espacios en blanco al inicio y final
+            maxTags: 20,  // Límite máximo de tags
+            placeholder: 'Ejemplo: construcción, infraestructura, salud'
+        });
+
+        // Cargar productos existentes (si los hay)
+        const existingKeywords = "{{ form.keywords_usuario.value|default_if_none:'' }}";
+        if (existingKeywords) {
+            tagify.addTags(existingKeywords.split(', ').filter(Boolean));
+        }
+
+        // Botón "Borrar Todo"
+        document.getElementById('clearTags').addEventListener('click', function() {
+            tagify.removeAllTags();
+        });
+    });
+</script>
+{% endblock %}

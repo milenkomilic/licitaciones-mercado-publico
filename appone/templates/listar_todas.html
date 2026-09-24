@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <!-- Tabla de palabras clave de administradores -->
+    <h2>Listado de Palabras Clave de Todos los Admins</h2>
+    {% if admin_keywords %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Admin</th>
+                    <th>Palabras Clave</th>
+                    <th>Última Actualización</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in admin_keywords %}
+                <tr>
+                    <!-- Ajusta si tu modelo de usuario usa otro campo para el nombre -->
+                    <td>{{ p.admin.nombre }}</td>
+                    <td>{{ p.keywords }}</td>
+                    <td>{{ p.updated_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No se han configurado palabras clave de administradores.</p>
+    {% endif %}
+
+    <!-- Tabla de palabras clave de usuarios -->
+    <h2>Listado de Palabras Clave de Todos los Usuarios</h2>
+    {% if user_keywords %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Palabras Clave</th>
+                    <th>Última Actualización</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in user_keywords %}
+                <tr>
+                    <!-- Ajusta si tu modelo de usuario usa otro campo para el nombre -->
+                    <td>{{ u.usuario.nombre }}</td>
+                    <td>{{ u.keywords_usuario }}</td>
+                    <td>{{ u.updated_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No se han configurado palabras clave de usuarios.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0 text-center text-md-start">Gestionar Productos (Admin)</h1>
+            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#infoModal">
+                <i class="bi bi-info-circle"></i> ¿Qué son los Productos?
+            </button>
+        </div>
+
+        <!-- Formulario de Productos -->
+        <div class="card p-3">
+            <form method="post" id="productosForm">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="{{ form.keywords.id_for_label }}" class="form-label">Productos</label>
+                    {{ form.keywords }}
+                    {% if form.keywords.help_text %}
+                        <small class="form-text text-muted">{{ form.keywords.help_text }}</small>
+                    {% endif %}
+                    {% if form.keywords.errors %}
+                        <div class="text-danger">
+                            {% for error in form.keywords.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-primary" id="clearTags">Borrar Todo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Información -->
+<div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModalLabel">Acerca de los Productos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Productos</strong></p>
+                <p>
+                    Los productos definidos aquí permiten personalizar las licitaciones priorizadas que se muestran a los usuarios. 
+                    Como administrador, al definir productos, estás indicando las categorías o áreas de interés principales que se 
+                    utilizarán para filtrar las licitaciones extraídas de Mercado Público. Estos productos se combinan con las preferencias 
+                    de cada usuario y los datos de los clientes asignados para generar un listado de licitaciones relevantes, optimizando 
+                    la búsqueda y reduciendo la cantidad de licitaciones a revisar.
+                </p>
+                <p>
+                    Ejemplo: Si defines productos como "construcción, salud", el sistema priorizará licitaciones relacionadas con esos 
+                    sectores para todos los usuarios bajo tu administración.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para inicializar Tagify y manejar "Borrar Todo" -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar Tagify
+        const input = document.querySelector('.tagify-input');
+        const tagify = new Tagify(input, {
+            delimiters: ", ",  // Separar tags por coma y espacio
+            duplicates: false,  // No permitir duplicados
+            trim: true,  // Eliminar espacios en blanco al inicio y final
+            maxTags: 20,  // Límite máximo de tags
+            placeholder: 'Ejemplo: construcción, infraestructura, salud'
+        });
+
+        // Cargar productos existentes (si los hay)
+        const existingKeywords = "{{ form.keywords.value|default_if_none:'' }}";
+        if (existingKeywords) {
+            tagify.addTags(existingKeywords.split(', ').filter(Boolean));
+        }
+
+        // Botón "Borrar Todo"
+        document.getElementById('clearTags').addEventListener('click', function() {
+            tagify.removeAllTags();
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestión de Licitaciones{% endblock %}</title>
+    {% load static %}
+
+    <!-- Bootstrap CSS (usamos CDN para mayor rapidez y consistencia) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tema Lux de Bootswatch -->
+    <link href="https://bootswatch.com/5/lux/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Estilos personalizados -->
+    <link href="{% static 'appone/styles.css' %}" rel="stylesheet">
+    <!-- Animate.css para animaciones-->
+    {% comment %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    {% endcomment %}
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Bloque para scripts adicionales como Chart.js -->
+    {% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% endblock %}
+
+    <!-- Tagify CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
+    <!-- Tagify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.polyfills.min.js"></script>
+
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm animate__animated animate__fadeInDown">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-gavel me-2"></i> Gestión de Licitaciones
+                <!-- Opcional: Agrega un logo si lo tienes -->
+                <!-- <img src="{% static 'images/logo.png' %}" alt="Logo" height="30"> -->
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if request.user.is_authenticated %}
+                        <!-- Dropdown Licitaciones -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="licitacionesDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-file-alt me-1"></i> Licitaciones
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="licitacionesDropdown">
+                                {% if request.user.is_staff %}
+                                    <li><a class="dropdown-item" href="/licitaciones/generales">Generales</a></li>
+                                {% else %}
+                                    <li><a class="dropdown-item" href="/licitaciones/priorizadas">Priorizadas</a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="/licitaciones/archivadas/">Archivadas</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Dropdown Gestión (según rol) -->
+                        {% if request.user.is_superuser %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="gestionDropdown" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cogs me-1"></i> Gestión
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="gestionDropdown">
+                                    <li><a class="dropdown-item" href="/usuarios/">Gestión de Usuarios</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'gestion_clientes' %}">Gestión de Clientes</a></li>
+                                    <li><a class="dropdown-item" href="/roles/">Gestión de Roles</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'lista_sectores' %}">Gestión de Sectores</a></li>
+                                </ul>
+                            </li>
+                        {% elif request.user.is_staff %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="gestionDropdown" role="button"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cogs me-1"></i> Gestión
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="gestionDropdown">
+                                    <li><a class="dropdown-item" href="/usuarios/">Gestión de Usuarios</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'gestion_clientes' %}">Gestión de Clientes</a></li>
+                                    <li><a class="dropdown-item" href="/roles/">Gestión de Roles</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'lista_sectores' %}">Ver Sectores</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'gestionar_palabras_admin' %}">Gestionar Productos (Admin)</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'mis_clientes' %}"><i class="fas fa-users me-1"></i> Clientes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'gestionar_palabras_usuarios' %}"><i class="fas fa-keyboard me-1"></i> Productos</a>
+                            </li>
+                        {% endif %}
+
+                        <!-- Cerrar sesión -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout/">
+                                <i class="fas fa-sign-out-alt me-1"></i> Cerrar Sesión
+                            </a>
+                        </li>
+                    {% else %}
+                        <!-- Iniciar Sesión (no autenticado) -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login/">
+                                <i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="flex-grow-1 py-4">
+        <div class="container main-container animate__animated animate__fadeIn">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer mejorado -->
+    <footer class="bg-black text-white py-4">
+        <div class="container">
+            <div class="row">
+                <!-- Información de la empresa -->
+                <div class="col-md-4 mb-3">
+                    <h5 class="text-white"><i class="fas fa-gavel me-2"></i> Gestión de Licitaciones</h5>
+                    <p class="text-white-50">
+                        Plataforma innovadora para la gestión de licitaciones de Mercado Público con tecnología de IA.
+                    </p>
+                </div>
+                <!-- Enlaces legales -->
+                <div class="col-md-4 mb-3">
+                    <h5 class="text-white">Enlaces Legales</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white text-decoration-none">Términos y Condiciones</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">Política de Privacidad</a></li>
+                    </ul>
+                </div>
+                <!-- Redes sociales -->
+                <div class="col-md-4 mb-3 text-center">
+                    <h5 class="text-white">Síguenos</h5>
+                    <a href="#" class="text-white mx-2"><i class="fab fa-facebook fa-2x"></i></a>
+                    <a href="#" class="text-white mx-2"><i class="fab fa-twitter fa-2x"></i></a>
+                    <a href="#" class="text-white mx-2"><i class="fab fa-linkedin fa-2x"></i></a>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <p class="text-white-50 mb-0">© 2025 Gestión de Licitaciones. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div aria-live="polite" aria-atomic="true" 
+         class="position-fixed top-0 start-50 translate-middle-x p-3" 
+         style="z-index: 1100;">
+        {% if messages %}
+            {% for message in messages %}
+                {% if "error" in message.tags or "danger" in message.tags %}
+                    <div class="toast align-items-center border-0 bg-danger text-white custom-toast animate__animated animate__fadeIn" role="alert" aria-live="assertive" aria-atomic="true">
+                {% elif "success" in message.tags %}
+                    <div class="toast align-items-center border-0 bg-success text-white custom-toast animate__animated animate__fadeIn" role="alert" aria-live="assertive" aria-atomic="true">
+                {% else %}
+                    <div class="toast align-items-center border-0 bg-primary text-white custom-toast animate__animated animate__fadeIn" role="alert" aria-live="assertive" aria-atomic="true">
+                {% endif %}
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            toastElList.forEach(function(toastEl) {
+                var toast = new bootstrap.Toast(toastEl, { delay: 4000, autohide: true });
+                toast.show();
+            });
+        });
+    </script>
+</body>
+</html>

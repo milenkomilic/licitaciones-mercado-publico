@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Eliminar Cliente</h2>
+    <p>¿Estás seguro de que deseas eliminar al cliente "<strong>{{ cliente.nombre_cliente }}</strong>"?</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+            <a href="{% url 'gestion_clientes' %}" class="btn btn-primary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

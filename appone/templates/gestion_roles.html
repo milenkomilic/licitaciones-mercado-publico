@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4 text-center text-md-start">Gestión de Roles</h2>
+            </div>
+        </div>
+
+        <!-- Botón para agregar un nuevo rol -->
+        {% comment %} <div class="mb-4">
+            <a href="{% url 'crear_rol' %}" class="btn btn-primary">Agregar Rol</a>
+        </div> {% endcomment %}
+
+        <!-- Botón para agregar un nuevo rol y botón del modal -->
+        <div class="row mb-3">
+            <div class="col-12 text-center text-md-start d-flex flex-column flex-md-row gap-2">
+                <a href="{% url 'crear_rol' %}" class="btn btn-primary">Agregar Rol</a>
+                <button type="button" class="btn btn-outline-info btn-sm ms-md-auto" data-bs-toggle="modal" data-bs-target="#infoModal">
+                    <i class="bi bi-info-circle"></i> ¿Por qué son importantes los roles?
+                </button>
+            </div>
+        </div>
+
+        <!-- Formulario de Filtros -->
+        <div class="card p-3 mb-4">
+            <form method="get">
+                <div class="row">
+                    <!-- Filtro por Texto (Nombre del Rol) -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <label class="form-label">Buscar (Nombre del Rol)</label>
+                        <input type="text" class="form-control" name="search_text" placeholder="Buscar por nombre de rol" value="{{ search_text }}">
+                    </div>
+
+                    <!-- Botones de búsqueda y reset -->
+                    <div class="col-12 mt-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                        <a href="{% url 'gestion_roles' %}" class="btn btn-primary w-100">Resetear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Contenido para pantallas pequeñas (< 768px): Tarjetas apiladas -->
+        <div class="row d-block d-md-none">
+            <div class="col-12">
+                {% for rol in roles %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ rol.nombre_rol }}</h5>
+                            <p class="card-text">
+                                <strong>Categoría:</strong> {{ rol.categoria.nombre_categoria }}<br>
+                                <strong>Descripción:</strong> {{ rol.descripcion }}
+                            </p>
+                            <div class="d-flex flex-column gap-2">
+                                <a href="{% url 'editar_rol' rol.id_rol %}" class="btn btn-sm btn-warning">Editar</a>
+                                <a href="{% url 'eliminar_rol' rol.id_rol %}" class="btn btn-sm btn-danger">Eliminar</a>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-center">No se encontraron roles.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Contenido para pantallas medianas (769px - 1399px): Dos cards por fila -->
+        <div class="row d-none d-md-block d-custom-lg-none">
+            <div class="col-12">
+                <div class="row row-cols-1 row-cols-md-2 g-3">
+                    {% for rol in roles %}
+                        <div class="col">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ rol.nombre_rol }}</h5>
+                                    <p class="card-text">
+                                        <strong>Categoría:</strong> {{ rol.categoria.nombre_categoria }}<br>
+                                        <strong>Descripción:</strong> {{ rol.descripcion }}
+                                    </p>
+                                    <div class="d-flex flex-column gap-2">
+                                        <a href="{% url 'editar_rol' rol.id_rol %}" class="btn btn-sm btn-warning">Editar</a>
+                                        <a href="{% url 'eliminar_rol' rol.id_rol %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="text-center">No se encontraron roles.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla para pantallas grandes (≥ 1400px) -->
+        <div class="row d-none d-custom-lg-block">
+            <div class="col-12">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre del Rol</th>
+                            <th>Categoría</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rol in roles %}
+                            <tr>
+                                <td>{{ rol.nombre_rol }}</td>
+                                <td>{{ rol.categoria.nombre_categoria }}</td>
+                                <td>{{ rol.descripcion }}</td>
+                                <td>
+                                    <div class="d-flex flex-column flex-md-row gap-2">
+                                        <a href="{% url 'editar_rol' rol.id_rol %}" class="btn btn-sm btn-warning">Editar</a>
+                                        <a href="{% url 'eliminar_rol' rol.id_rol %}" class="btn btn-sm btn-danger">Eliminar</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No se encontraron roles.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Modal de Información -->
+        <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="infoModalLabel">Importancia de los Roles</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>¿Por qué son importantes los roles?</strong></p>
+                        <p>
+                            Los roles (Superadmin, Admin, Usuario) determinan el nivel de acceso y la personalización de las licitaciones que cada usuario ve diariamente. El Superadmin crea Admins y Usuarios, mientras que los Admins crean Usuarios y asignan clientes, definiendo así sus perfiles.
+                        </p>
+                        <p>
+                            La IA, mediante Amazon Bedrock, usa el rol junto con los datos de clientes (sectores y palabras clave) para priorizar licitaciones relevantes de Mercado Público. Por ejemplo, un Usuario con rol "Ventas" y clientes en "Construcción" verá licitaciones específicas de ese sector, reduciendo las 1000+ diarias a un listado manejable (200-400).
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Paginación -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <div class="mb-2 mb-md-0 text-center text-md-start">
+                        Mostrando {{ roles.start_index }} - {{ roles.end_index }} de {{ roles.paginator.count }} roles
+                    </div>
+                    <nav class="w-100 w-md-auto">
+                        <ul class="pagination justify-content-center justify-content-md-end">
+                            {% if roles.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search_text %}&search_text={{ request.GET.search_text }}{% endif %}">
+                                        « Primero
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ roles.previous_page_number }}{% if request.GET.search_text %}&search_text={{ request.GET.search_text }}{% endif %}">
+                                        ‹ Anterior
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            {% for page_num in roles.paginator.page_range %}
+                                {% if roles.number == page_num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% elif page_num >= roles.number|add:'-2' and page_num <= roles.number|add:'2' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_num }}{% if request.GET.search_text %}&search_text={{ request.GET.search_text }}{% endif %}">{{ page_num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if roles.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ roles.next_page_number }}{% if request.GET.search_text %}&search_text={{ request.GET.search_text }}{% endif %}">
+                                        Siguiente ›
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ roles.paginator.num_pages }}{% if request.GET.search_text %}&search_text={{ request.GET.search_text }}{% endif %}">
+                                        Último »
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSS personalizado para breakpoint de 1399px -->
+<style>
+    @media (min-width: 769px) and (max-width: 1399px) {
+        .custom-md-lg-row .row-cols-md-2 > * {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+    }
+
+    @media (min-width: 1400px) {
+        .d-custom-lg-block {
+            display: block !important;
+        }
+        .d-custom-lg-none {
+            display: none !important;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,94 @@
+/* Fondo general de la página (suaviza el blanco) */
+html, body {
+  height: 100%;
+  margin: 0;
+  /* font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; */
+}
+
+/* Contenedor principal con fondo blanco, bordes redondeados y sombra - Solo estructura */
+.card {
+  border-radius: 0.5rem;
+  margin: 1rem 0; /* Adjust margins for mobile */
+}
+
+.card-body {
+  padding: 1rem; /* Reduce padding on smaller screens */
+}
+
+@media (min-width: 768px) { /* Medium and larger screens */
+  .card-body {
+    padding: 2rem;
+  }
+  .card {
+    margin: 2rem 0;
+  }
+}
+
+/* Wrapper general para ocupar toda la altura y distribuir el contenido */
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Ajuste para el contenedor que ocupa el espacio disponible */
+.container-fluid {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Ajustes para tablas - Solo estructura */
+.table-responsive {
+  margin-top: 10px;
+  border-radius: 5px;
+}
+
+/* Encabezados y celdas de la tabla - Solo alineación y comportamiento */
+.table th, .table td {
+  vertical-align: middle;
+  text-align: left;
+}
+
+/* Hacer columnas más pequeñas en pantallas pequeñas */
+@media (max-width: 767px) { /* Small screens (mobile) */
+  .table th.d-none, .table td.d-none {
+    display: none !important; /* Hide non-essential columns on mobile */
+  }
+  .table th, .table td {
+    font-size: 0.8rem; /* Reduce font size for better fit on mobile */
+  }
+  .btn-sm {
+    font-size: 0.7rem; /* Smaller buttons on mobile */
+    padding: 0.25rem 0.5rem;
+    margin: 0.1rem; /* Add spacing between buttons */
+  }
+  .card-title {
+    font-size: 1.25rem; /* Reduce title size on mobile */
+  }
+  .form-control, .btn {
+    width: 100%; /* Full width on mobile */
+  }
+}
+
+/* Centrar contenido en móviles */
+@media (max-width: 767px) {
+  .card-title, .table, .table-responsive {
+    text-align: center; /* Center text and elements on mobile */
+  }
+  .d-flex.flex-column.flex-md-row {
+    justify-content: center;
+  }
+}
+
+/* Estilo para el menú desplegable de la navbar - Solo estructura, sin colores */
+.navbar .dropdown-menu {
+  border: none; /* Quita el borde */
+  position: absolute !important; /* Posición absoluta respecto a la navbar */
+  top: 100% !important;          /* Justo debajo de la navbar */
+  left: 0 !important;
+  margin-top: 0.125rem;          /* Pequeño margen por defecto */
+  z-index: 9999 !important;      /* Asegura que se muestre por encima de otros elementos */
+  overflow: visible !important;  /* Sin scroll interno */
+  max-height: none !important;   /* Sin restricciones de altura */
+  white-space: nowrap;           /* Evita el wrapping que provoque scroll horizontal */
+}
